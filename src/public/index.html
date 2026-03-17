@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasa BCV API — Rafael Agar</title>
+  <meta name="description" content="API para consultar tasas de cambio oficiales del Banco Central de Venezuela (USD/EUR). Desarrollado por Rafael Agar.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-card-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --text-primary: #f0f2f5;
+      --text-secondary: #8a8f9e;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59,130,246,0.25);
+      --green: #22c55e;
+      --green-glow: rgba(34,197,94,0.2);
+      --gold: #f59e0b;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated gradient background */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,130,246,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(34,197,94,0.06) 0%, transparent 60%);
+      animation: bgShift 12s ease-in-out infinite alternate;
+    }
+    @keyframes bgShift {
+      0% { opacity: 0.7; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.1); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 60px 24px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      background: var(--green-glow);
+      border: 1px solid rgba(34,197,94,0.25);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--green);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      animation: fadeInUp 0.6s ease both;
+    }
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      animation: fadeInUp 0.6s ease 0.1s both;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+      animation: fadeInUp 0.6s ease 0.2s both;
+    }
+
+    /* Rate cards */
+    .rates-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+      animation: fadeInUp 0.6s ease 0.3s both;
+    }
+    .rate-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+      cursor: default;
+    }
+    .rate-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .rate-card .currency-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    .rate-card .currency-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .rate-card .rate-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .rate-card .rate-suffix {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-top: 4px;
+    }
+    .rate-card.usd .rate-value { color: var(--green); }
+    .rate-card.eur .rate-value { color: var(--accent); }
+
+    .rates-updated {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: -8px;
+      animation: fadeInUp 0.6s ease 0.35s both;
+    }
+
+    /* Endpoints */
+    .endpoints {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      animation: fadeInUp 0.6s ease 0.4s both;
+    }
+    .endpoints-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+    .endpoint {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .endpoint:last-child { border-bottom: none; }
+    .endpoint:hover { background: var(--bg-card-hover); }
+    .method {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+    .method.get {
+      background: rgba(34,197,94,0.15);
+      color: var(--green);
+    }
+    .method.post {
+      background: rgba(245,158,11,0.15);
+      color: var(--gold);
+    }
+    .endpoint-path {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--text-primary);
+      flex: 1;
+    }
+    .endpoint-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: right;
+    }
+
+    /* Author */
+    .author {
+      text-align: center;
+      animation: fadeInUp 0.6s ease 0.5s both;
+    }
+    .author-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .author-location {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .author-links {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .author-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .author-links a:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px var(--accent-glow);
+      transform: translateY(-1px);
+    }
+    .author-links a svg {
+      width: 16px; height: 16px;
+      fill: currentColor;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      opacity: 0.6;
+      animation: fadeInUp 0.6s ease 0.6s both;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Loading shimmer for rates */
+    .shimmer {
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    @media (max-width: 500px) {
+      .rates-grid { grid-template-columns: 1fr; }
+      .endpoint-desc { display: none; }
+      .container { padding: 40px 16px 32px; gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <div class="container">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="badge">API Activa</div>
+      <h1>Tasa <span class="gradient-text">BCV</span> API</h1>
+      <p>Tasas de cambio oficiales del Banco Central de Venezuela actualizadas diariamente.</p>
+    </div>
+
+    <!-- Live Rates -->
+    <div class="rates-grid">
+      <div class="rate-card usd">
+        <div class="currency-icon">🇺🇸</div>
+        <div class="currency-label">Dólar USD</div>
+        <div class="rate-value" id="usd-rate">—</div>
+        <div class="rate-suffix">Bs por dólar</div>
+      </div>
+      <div class="rate-card eur">
+        <div class="currency-icon">🇪🇺</div>
+        <div class="currency-label">Euro EUR</div>
+        <div class="rate-value" id="eur-rate">—</div>
+        <div class="rate-suffix">Bs por euro</div>
+      </div>
+    </div>
+    <div class="rates-updated">
+      Última actualización: <span id="last-update">cargando...</span>
+    </div>
+
+    <!-- Endpoints -->
+    <div class="endpoints">
+      <div class="endpoints-header">📡 Endpoints disponibles</div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/rates/latest</span>
+        <span class="endpoint-desc">Última tasa</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/rates/history</span>
+        <span class="endpoint-desc">Historial</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/api/rates/date/:date</span>
+        <span class="endpoint-desc">Por fecha</span>
+      </div>
+
+    </div>
+
+    <!-- Author -->
+    <div class="author">
+      <div class="author-name">Desarrollado por Rafael Agar</div>
+      <div class="author-location">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Valencia, Venezuela 🇻🇪
+      </div>
+      <div class="author-links">
+        <a href="https://www.linkedin.com/in/rafael-agar-ocanto/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          LinkedIn
+        </a>
+      </div>
+    </div>
+
+    <div class="footer">
+      &copy; 2026 Tasa BCV API — Datos del Banco Central de Venezuela
+    </div>
+  </div>
+
+  <script>
+    async function loadRates() {
+      try {
+        const res = await fetch('/api/rates/latest');
+        const json = await res.json();
+        if (json.success && json.data) {
+          document.getElementById('usd-rate').textContent = json.data.usd.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+          document.getElementById('eur-rate').textContent = json.data.eur.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+          document.getElementById('last-update').textContent = json.data.date;
+        } else {
+          document.getElementById('last-update').textContent = 'No hay datos aún';
+        }
+      } catch (e) {
+        document.getElementById('last-update').textContent = 'Error al cargar';
+      }
+    }
+    loadRates();
+  </script>
+</body>
+</html>

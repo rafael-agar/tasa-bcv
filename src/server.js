@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/database');
 const ratesRouter = require('./routes/rates');
 const { startCronJob } = require('./services/cronJob');
@@ -13,20 +14,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Ruta raíz
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Tasa BCV API',
-    version: '1.0.0',
-    description: 'API para consultar tasas de cambio del Banco Central de Venezuela (USD/EUR)',
-    endpoints: {
-      latest: 'GET /api/rates/latest',
-      history: 'GET /api/rates/history?page=1&limit=30',
-      byDate: 'GET /api/rates/date/YYYY-MM-DD',
-      scrape: 'POST /api/rates/scrape',
-    },
-  });
-});
+// Servir la página estática de presentación
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rutas de la API
 app.use('/api/rates', ratesRouter);
