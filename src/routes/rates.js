@@ -24,6 +24,7 @@ router.get('/latest', async (req, res) => {
         date: latest.date.toISOString().split('T')[0],
         usd: latest.usd,
         eur: latest.eur,
+        usdt: latest.usdt,
         updatedAt: latest.updatedAt,
       },
     });
@@ -54,6 +55,7 @@ router.get('/history', async (req, res) => {
         date: r.date.toISOString().split('T')[0],
         usd: r.usd,
         eur: r.eur,
+        usdt: r.usdt,
       })),
       pagination: {
         page,
@@ -99,6 +101,7 @@ router.get('/date/:date', async (req, res) => {
         date: rate.date.toISOString().split('T')[0],
         usd: rate.usd,
         eur: rate.eur,
+        usdt: rate.usdt,
       },
     });
   } catch (error) {
@@ -121,6 +124,7 @@ router.post('/scrape', async (req, res) => {
         date: result.date.toISOString().split('T')[0],
         usd: result.usd,
         eur: result.eur,
+        usdt: result.usdt,
       },
     });
   } catch (error) {

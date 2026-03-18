@@ -15,6 +15,10 @@ const exchangeRateSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  usdt: {
+    type: Number,
+    required: true,
+  },
 }, {
   timestamps: true,
 });

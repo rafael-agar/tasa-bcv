@@ -7,8 +7,8 @@ const https = require('https');
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 /**
- * Lógica interna para hacer el scraping de la página del BCV.
- * @returns {Promise<{ usd: number, eur: number, date: Date }>}
+ * Lógica interna para hacer el scraping de la página del BCV y Binance.
+ * @returns {Promise<{ usd: number, eur: number, usdt: number, date: Date }>}
  */
 const performScraping = async () => {
   const { data: html } = await axios.get('https://www.bcv.org.ve/', {
@@ -50,13 +50,46 @@ const performScraping = async () => {
     throw new Error('No se pudieron extraer las tasas del BCV. La estructura HTML pudo haber cambiado.');
   }
 
+  // Obtener USDT desde la API de Binance P2P
+  let usdt = null;
+  try {
+    const { data: binanceData } = await axios.post(
+      'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search',
+      {
+        fiat: 'VES',
+        page: 1,
+        rows: 1,
+        tradeType: 'BUY',
+        asset: 'USDT',
+        countries: [],
+        proMerchantAds: false,
+        publisherType: null,
+        payTypes: []
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        },
+        timeout: 10000,
+      }
+    );
+    if (binanceData?.data?.[0]?.adv?.price) {
+      usdt = parseFloat(binanceData.data[0].adv.price);
+    }
+  } catch (err) {
+    console.error(`⚠️ Error extrayendo Binance P2P: ${err.message}`);
+    // Fallback: usar el mismo valor que USD para que no falle todo el proceso
+    usdt = usd;
+  }
+
   // Fecha de hoy sin hora (solo el día)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  console.log(`📊 Tasas obtenidas del BCV — USD: ${usd} | EUR: ${eur}`);
+  console.log(`📊 Tasas obtenidas — USD: ${usd} | EUR: ${eur} | USDT: ${usdt}`);
 
-  return { usd, eur, date: today };
+  return { usd, eur, usdt, date: today };
 };
 
 /**

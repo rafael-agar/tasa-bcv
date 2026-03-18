@@ -7,16 +7,16 @@ const ExchangeRate = require('../models/ExchangeRate');
  */
 const fetchAndSaveRate = async () => {
   try {
-    const { usd, eur, date } = await scrapeBCV();
+    const { usd, eur, usdt, date } = await scrapeBCV();
 
     // Upsert: actualizar si ya existe la tasa de hoy, o crear nueva
     const result = await ExchangeRate.findOneAndUpdate(
       { date },
-      { usd, eur, date },
+      { usd, eur, usdt, date },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    console.log(`✅ Tasa guardada — Fecha: ${result.date.toISOString().split('T')[0]} | USD: ${result.usd} | EUR: ${result.eur}`);
+    console.log(`✅ Tasa guardada — Fecha: ${result.date.toISOString().split('T')[0]} | USD: ${result.usd} | EUR: ${result.eur} | USDT: ${result.usdt}`);
     return result;
   } catch (error) {
     console.error(`❌ Error al guardar tasa: ${error.message}`);

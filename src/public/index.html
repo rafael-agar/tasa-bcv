@@ -119,7 +119,7 @@
     /* Rate cards */
     .rates-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
       width: 100%;
       animation: fadeInUp 0.6s ease 0.3s both;
@@ -165,6 +165,7 @@
     }
     .rate-card.usd .rate-value { color: var(--green); }
     .rate-card.eur .rate-value { color: var(--accent); }
+    .rate-card.usdt .rate-value { color: #26A17B; }
 
     .rates-updated {
       text-align: center;
@@ -369,6 +370,12 @@
         <div class="rate-value" id="eur-rate">—</div>
         <div class="rate-suffix">Bs por euro</div>
       </div>
+      <div class="rate-card usdt">
+        <div class="currency-icon">🪙</div>
+        <div class="currency-label">Tether USDT</div>
+        <div class="rate-value" id="usdt-rate">—</div>
+        <div class="rate-suffix">Bs por tether</div>
+      </div>
     </div>
     <div class="rates-updated">
       Última actualización: <span id="last-update">cargando...</span>
@@ -423,6 +430,7 @@
         if (json.success && json.data) {
           document.getElementById('usd-rate').textContent = json.data.usd.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
           document.getElementById('eur-rate').textContent = json.data.eur.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+          document.getElementById('usdt-rate').textContent = json.data.usdt.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
           document.getElementById('last-update').textContent = json.data.date;
         } else {
           document.getElementById('last-update').textContent = 'No hay datos aún';
