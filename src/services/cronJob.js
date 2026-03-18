@@ -25,20 +25,20 @@ const fetchAndSaveRate = async () => {
 };
 
 /**
- * Inicia el cron job que se ejecuta todos los días a las 4:00 PM hora de Caracas.
+ * Inicia el cron job que se ejecuta de lunes a viernes a las 12:01 AM hora de Caracas.
  */
 const startCronJob = () => {
-  // Cron: minuto 0, hora 16, todos los días, todos los meses, lunes a viernes
+  // Cron: minuto 1, hora 0, todos los días, todos los meses, lunes a viernes
   // Timezone: America/Caracas (UTC-4)
-  const task = cron.schedule('0 16 * * 1-5', async () => {
-    console.log('⏰ Ejecutando scraping programado (4:00 PM Caracas)...');
+  const task = cron.schedule('1 0 * * 1-5', async () => {
+    console.log('⏰ Ejecutando scraping programado (12:01 AM Caracas)...');
     await fetchAndSaveRate();
   }, {
     scheduled: true,
     timezone: 'America/Caracas',
   });
 
-  console.log('🕐 Cron job programado: Lunes a Viernes a las 4:00 PM (America/Caracas)');
+  console.log('🕐 Cron job programado: Lunes a Viernes a las 12:01 AM (America/Caracas)');
   return task;
 };
 
