@@ -131,3 +131,18 @@ const scrapeBCV = async () => {
 };
 
 module.exports = scrapeBCV;
+
+// Permitir ejecución directa para pruebas: node src/services/scraper.js
+if (require.main === module) {
+  (async () => {
+    try {
+      console.log('🧪 Iniciando prueba de scraping manual...');
+      const result = await performScraping(); // Usamos performScraping para una sola ejecución rápida
+      console.log('✅ Prueba exitosa:', result);
+      process.exit(0);
+    } catch (error) {
+      console.error('❌ Error en la prueba de scraping:', error.message);
+      process.exit(1);
+    }
+  })();
+}

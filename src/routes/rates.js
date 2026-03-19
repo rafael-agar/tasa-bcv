@@ -110,10 +110,16 @@ router.get('/date/:date', async (req, res) => {
 });
 
 /**
- * POST /api/rates/scrape
- * Ejecutar scraping manual on-demand.
+ * GET | POST /api/rates/scrape
+ * Ejecutar scraping manual or scheduled (Vercel Cron).
  */
-router.post('/scrape', async (req, res) => {
+router.all('/scrape', async (req, res) => {
+  // Verificación de seguridad para Vercel Cron (opcional pero recomendado)
+  const authHeader = req.headers.authorization;
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ success: false, message: 'No autorizado' });
+  }
+
   try {
     const result = await fetchAndSaveRate();
 

@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/src/server.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/rates/scrape",
+      "schedule": "0 4 * * 1-5"
+    }
+  ]
+}

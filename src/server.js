@@ -20,18 +20,31 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Rutas de la API
 app.use('/api/rates', ratesRouter);
 
-// Iniciar servidor
-const start = async () => {
-  // Conectar a MongoDB Atlas
-  await connectDB();
+// Exportar app para Vercel
+module.exports = app;
 
-  // Iniciar cron job
-  startCronJob();
-
-  app.listen(PORT, () => {
-    console.log(`🚀 Tasa BCV API corriendo en http://localhost:${PORT}`);
-    console.log(`📋 Documentación: http://localhost:${PORT}/`);
+// Iniciar servidor localmente si no es un entorno serverless
+if (!process.env.VERCEL) {
+  const start = async () => {
+    try {
+      await connectDB();
+      startCronJob();
+      app.listen(PORT, () => {
+        console.log(`🚀 Tasa BCV API corriendo en http://localhost:${PORT}`);
+      });
+    } catch (error) {
+      console.error('❌ Error al iniciar el servidor:', error.message);
+    }
+  };
+  start();
+} else {
+  // En Vercel, nos aseguramos de conectar a DB en cada función (Mongoose maneja el pool internamente)
+  app.use(async (req, res, next) => {
+    try {
+      await connectDB();
+      next();
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Database connection error' });
+    }
   });
-};
-
-start();
+}
