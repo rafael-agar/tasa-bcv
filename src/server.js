@@ -14,8 +14,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Servir la página estática de presentación
-app.use(express.static(path.join(__dirname, 'public')));
+// Servir la página estática de presentación (ahora en la raíz)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Rutas de la API
 app.use('/api/rates', ratesRouter);

@@ -93,40 +93,14 @@ const performScraping = async () => {
 };
 
 /**
- * Función principal que llama a la lógica de scraping y reintenta cada 10 min si falla.
- * El máximo de intentos se basa en el próximo cron programado.
+ * Función principal que llama a la lógica de scraping.
  */
 const scrapeBCV = async () => {
-  // Calcular intentos máximos: 1 intento cada 10 min -> 6 por hora
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  
-  // Por defecto (lunes a jueves) el próximo scraping es en 24 horas
-  let maxAttempts = 24 * 6; // 144 intentos
-  
-  // Si es viernes (5), el próximo scraping es el lunes, o sea en 72 horas
-  if (dayOfWeek === 5) {
-    maxAttempts = 72 * 6; // 432 intentos
-  }
-
-  let attempt = 0;
-
-  while (attempt < maxAttempts) {
-    try {
-      return await performScraping();
-    } catch (error) {
-      attempt++;
-      console.error(`❌ Error en scraping del BCV: ${error.message}`);
-      
-      if (attempt < maxAttempts) {
-        console.log(`⏳ Reintentando en 10 minutos... (Intento ${attempt} de ${maxAttempts})`);
-        // Esperar 10 minutos (600,000 milisegundos)
-        await new Promise(resolve => setTimeout(resolve, 10 * 60 * 1000));
-      } else {
-        console.error(`🚨 Se alcanzó el límite máximo de intentos (${maxAttempts}) hasta el próximo scraping programado.`);
-        throw error;
-      }
-    }
+  try {
+    return await performScraping();
+  } catch (error) {
+    console.error(`❌ Error en scraping del BCV: ${error.message}`);
+    throw error;
   }
 };
 
